@@ -1,0 +1,159 @@
+<!doctype html><html lang=en class=direction-ltr><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>3D Tile System in Godot - Animal Society</title><meta name=keywords content="godot"><meta name=description content="Simple 3D tile system in Godot"><meta name=author content><link rel=canonical href=https://animalsociety.github.io/blog/posts/3d-tile-system-in-godot/><link href=https://animalsociety.github.io/blog/assets/css/stylesheet.min.a7be9e3b28868ad9d1331f00b5e9c207efbfe37aea15c32d101d76f2901bb918.css integrity="sha256-p76eOyiGitnRMx8AtenCB++/43rqFcMtEB128pAbuRg=" rel="preload stylesheet" as=style><link rel=apple-touch-icon href=https://animalsociety.github.io/blog/apple-touch-icon.png><link rel=icon href=https://animalsociety.github.io/blog/favicon.ico><meta name=generator content="Hugo 0.76.5"></head><body class="single dark" id=top><noscript><style type=text/css>.theme-toggle,.top-link{display:none}</style></noscript><header class=header><nav class=nav><p class=logo><a href=https://animalsociety.github.io/blog>Animal Society</a></p><ul class=menu id=menu onscroll=menu_on_scroll()></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class=post-title>3D Tile System in Godot</h1><div class=post-meta>October 26, 2020</div></header><figure class=entry-cover><img src=https://animalsociety.github.io/blog/3d-tile-system-in-godot/cover.gif alt></figure><div class=post-content><p>This is a short article to bring some insight into how we implemented a simple 3D tile system in Godot. The code is in C#.</p><p>Enjoy!</p><h2 id=overview>Overview</h2><p>In essence, the entire map is just a 3D array where each cell maps to an abstract <code>Tile</code> class:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp>Tile[,,] Tiles; <span style=color:#75715e>// [column, row, floor]
+</span></code></pre></div><p>The abstract <code>Tile</code> class defines the common data and behaviour that all tiles in the game should have. Arguably the most important piece of data that each tile has is its position in the 3D array, and its <code>Load</code> method which simply loads a 3D model into the game based on its cell position.</p><p>The tiles are constructed from a <code>JSON</code> file that defines the map. At runtime, this file is read and parsed into various tiles that inherits from the abstract <code>Tile</code> class and loaded into the game. That&rsquo;s basically it for the 3D tile system.</p><p>To demonstrate a small example, take this simple <code>JSON</code> file that defines two tiles in the game:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json>{
+    <span style=color:#f92672>&#34;columns&#34;</span>: <span style=color:#e6db74>&#34;2&#34;</span>,
+    <span style=color:#f92672>&#34;rows&#34;</span>: <span style=color:#e6db74>&#34;1&#34;</span>,
+    <span style=color:#f92672>&#34;floors&#34;</span>: <span style=color:#e6db74>&#34;1&#34;</span>,
+    <span style=color:#f92672>&#34;tiles&#34;</span>: [
+        {
+            <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;floor&#34;</span>,
+            <span style=color:#f92672>&#34;cell&#34;</span>: { <span style=color:#f92672>&#34;column&#34;</span>: <span style=color:#ae81ff>0</span>, <span style=color:#f92672>&#34;row&#34;</span>: <span style=color:#ae81ff>0</span>, <span style=color:#f92672>&#34;floor&#34;</span>: <span style=color:#ae81ff>0</span> },
+            <span style=color:#f92672>&#34;orientation&#34;</span>: <span style=color:#e6db74>&#34;south&#34;</span>,
+            <span style=color:#f92672>&#34;model&#34;</span>: {
+                <span style=color:#f92672>&#34;roof&#34;</span>: <span style=color:#e6db74>&#34;res://assets/tile/grass-flat.glb&#34;</span>,
+                <span style=color:#f92672>&#34;block&#34;</span>: <span style=color:#e6db74>&#34;res://assets/tile/dirt-block.glb&#34;</span>
+            },
+            <span style=color:#f92672>&#34;height&#34;</span>: <span style=color:#ae81ff>2</span>,
+            <span style=color:#f92672>&#34;height_offset&#34;</span>: <span style=color:#ae81ff>0</span>
+        },
+        {
+            <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;ramp&#34;</span>,
+            <span style=color:#f92672>&#34;cell&#34;</span>: { <span style=color:#f92672>&#34;column&#34;</span>: <span style=color:#ae81ff>1</span>, <span style=color:#f92672>&#34;row&#34;</span>: <span style=color:#ae81ff>0</span>, <span style=color:#f92672>&#34;floor&#34;</span>: <span style=color:#ae81ff>1</span> },
+            <span style=color:#f92672>&#34;orientation&#34;</span>: <span style=color:#e6db74>&#34;east&#34;</span>,
+            <span style=color:#f92672>&#34;model&#34;</span>: {
+                <span style=color:#f92672>&#34;roof&#34;</span>: <span style=color:#e6db74>&#34;res://assets/tile/grass-slope.glb&#34;</span>,
+                <span style=color:#f92672>&#34;block&#34;</span>: <span style=color:#e6db74>&#34;res://assets/tile/dirt-slope.glb&#34;</span>
+            },
+            <span style=color:#f92672>&#34;height&#34;</span>: <span style=color:#ae81ff>2</span>,
+            <span style=color:#f92672>&#34;height_offset&#34;</span>: <span style=color:#ae81ff>0</span>
+        }
+    ]
+}
+</code></pre></div><p>First we define how big the map is by the entries at the top. From there, we simply define a list of tiles that we want specified by its <code>type</code>. The <code>floor</code> type will create an instance of a <code>FloorTile</code> class that allows a player to walk in any direction (i.e. north, east, south or west). The <code>ramp</code> type spawns a <code>RampTile</code> instance that allows a player to go either up or down a floor, and can only be accessed from two directions; either north and south, or west and east.</p><p>The <code>JSON</code> file produces the following tiny map:</p><p><img src=/3d-tile-system-in-godot/tiny-map.png alt></p><h2 id=the-board-class>The Board Class</h2><p>The <code>Board</code> class is sort of what connects everything together. It generates the map and allows the players and tiles to interact with both the board and each other. Let&rsquo;s take a look at some of its functionality:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Board</span> {
+	<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>readonly</span> <span style=color:#66d9ef>int</span> CELL_SIZE = <span style=color:#ae81ff>2</span>;
+
+	<span style=color:#66d9ef>public</span> Tile[,,] Tiles { <span style=color:#66d9ef>get</span>; <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>set</span>; }
+	<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>int</span> Columns { <span style=color:#66d9ef>get</span>; <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>set</span>; }
+	<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>int</span> Rows { <span style=color:#66d9ef>get</span>; <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>set</span>; }
+	<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>int</span> Floors { <span style=color:#66d9ef>get</span>; <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>set</span>; }
+
+    <span style=color:#66d9ef>public</span> Board(<span style=color:#66d9ef>string</span> jsonFile) {
+		<span style=color:#66d9ef>var</span> json = Read(jsonFile);
+		Tiles = Parse(json);
+
+		Columns = Tiles.GetLength(<span style=color:#ae81ff>0</span>);
+		Rows = Tiles.GetLength(<span style=color:#ae81ff>1</span>);
+		Floors = Tiles.GetLength(<span style=color:#ae81ff>2</span>);
+    }
+
+    <span style=color:#66d9ef>public</span> Tile GetTile(BoardCell cell) {
+		<span style=color:#66d9ef>return</span> Tiles[cell.Column, cell.Row, cell.Floor];
+	}
+
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> Load(Node parent) {
+		<span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>int</span> floor = <span style=color:#ae81ff>0</span>; floor &lt; Floors; floor++) {
+			<span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>int</span> row = <span style=color:#ae81ff>0</span>; row &lt; Rows; row++) {
+				<span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>int</span> col = <span style=color:#ae81ff>0</span>; col &lt; Columns; col++) {
+					<span style=color:#66d9ef>var</span> tile = Tiles[col, row, floor];
+					tile?.Load(parent);
+				}
+			}
+		}
+	}
+
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>string</span> Read(<span style=color:#66d9ef>string</span> jsonFile) {
+		<span style=color:#75715e>// Read JSON file
+</span><span style=color:#75715e></span>	}
+
+	<span style=color:#66d9ef>private</span> Tile[,,] Parse(<span style=color:#66d9ef>string</span> json) {
+		<span style=color:#75715e>// Parse JSON file
+</span><span style=color:#75715e></span>	}
+</code></pre></div><p>The <code>Board</code> class is instanced from the root node in a scene, which then calls the <code>Load</code> method and passes itself as <code>parent</code> so that tiles can add a child to it. The <code>BoardCell</code> type refers to a simple utility struct:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>readonly</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>BoardCell</span> {
+	<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>readonly</span> <span style=color:#66d9ef>int</span> Column, Row, Floor;
+	
+	<span style=color:#66d9ef>public</span> BoardCell(<span style=color:#66d9ef>int</span> column, <span style=color:#66d9ef>int</span> row, <span style=color:#66d9ef>int</span> floor) {
+		<span style=color:#66d9ef>this</span>.Column = column;
+		<span style=color:#66d9ef>this</span>.Row = row;
+		<span style=color:#66d9ef>this</span>.Floor = floor;
+	}
+
+	<span style=color:#66d9ef>public</span> Vector3 ToWorld() {
+		<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Vector3(Column, Floor, Row) * Board.CELL_SIZE;
+	}
+
+    <span style=color:#75715e>/* ... */</span>
+}
+</code></pre></div><p>Every loaded tile in the game must be set to a proper position in the scene&rsquo;s world space. This is where the <code>ToWorld()</code> comes in. To make life easy, two key assumptions are made:</p><ul><li>Every tile has the same size.</li><li>The <a href=https://docs.blender.org/manual/en/latest/scene_layout/object/origin.html>object origin</a> of every 3D model is located at the bottom center.</li></ul><p>This makes the mapping from a cell position to world position quite easy when it comes to positioning a tile. That brings us to the abstract <code>Tile</code> class, which has one key piece of data and one key method:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Tile</span> {
+    <span style=color:#66d9ef>public</span> BoardCell Cell;
+    <span style=color:#75715e>/* ... */</span>
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>virtual</span> <span style=color:#66d9ef>void</span> Load(Node parent) {
+		<span style=color:#75715e>// Load tile to scene tree.
+</span><span style=color:#75715e></span>        <span style=color:#75715e>// This basically means to load and instance a 3D model,
+</span><span style=color:#75715e></span>        <span style=color:#75715e>// and add it as a child to parent.
+</span><span style=color:#75715e></span>        <span style=color:#75715e>// Then set its position with Cell.ToWorld().
+</span><span style=color:#75715e></span>	}
+}
+</code></pre></div><h2 id=moving-a-player>Moving A Player</h2><p>To move a player, we need some sort of pathfinding or <em>graph search</em> algorithm which you can read more about from <a href=https://www.redblobgames.com/pathfinding/a-star/introduction.html>this</a> wonderful article. To solve this, we introduce the <code>TileWalkable</code> class that provides two key methods:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>TileWalkable</span> : Tile {
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>abstract</span> List&lt;TileWalkable&gt; Neighbors(Tile[,,] grid);
+
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>bool</span> IsConnected(TileWalkable tile, Tile[,,] grid) {
+		<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.Neighbors(grid).Contains(tile);
+	}
+}
+</code></pre></div><p>The <code>IsConnected</code> converts the 3D grid array to a graph where various tiles are connected, and the <code>Neighbors</code> method provides the logic for which neighbors a tile actually has. Together these two methods will allow us to make use of a graph search algorithm.</p><p>Let&rsquo;s take a look at the <code>FloorTile</code> class to shed some light on this:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>FloorTile</span> : TileWalkable {
+	<span style=color:#66d9ef>public</span> <span style=color:#66d9ef>override</span> List&lt;TileWalkable&gt; Neighbors(Tile[,,] grid) {
+		<span style=color:#66d9ef>var</span> neighbors = <span style=color:#66d9ef>new</span> List&lt;TileWalkable&gt;();
+
+		<span style=color:#66d9ef>var</span> dirs = <span style=color:#66d9ef>new</span> List&lt;TileOrientation&gt;() {
+			TileOrientation.North,
+			TileOrientation.East,
+			TileOrientation.South,
+			TileOrientation.West
+		};
+
+		<span style=color:#66d9ef>foreach</span> (<span style=color:#66d9ef>var</span> dir <span style=color:#66d9ef>in</span> dirs) {
+			<span style=color:#66d9ef>var</span> adjacent = Cell.Adjacent(dir);
+			<span style=color:#66d9ef>if</span> (adjacent.IsOutsideGrid(grid)) <span style=color:#66d9ef>continue</span>;
+
+			<span style=color:#66d9ef>var</span> tile = grid[adjacent.Column, adjacent.Row, adjacent.Floor];
+			<span style=color:#66d9ef>if</span> (tile <span style=color:#66d9ef>is</span> TileWalkable walkable) {
+				neighbors.Add(walkable);
+			}
+		}
+
+		<span style=color:#66d9ef>return</span> neighbors;
+	}
+}
+</code></pre></div><p>Recall that a <code>FloorTile</code> allows a player to walk in any direction, and so the goal is to find the adjacent tile for each direction and check if that is also a tile that a player can walk on. If it is, we add it to the <code>neighbors</code> list. The <code>TileOrientation</code> is just an <code>enum</code>, and the <code>Cell.Adjacent(dir)</code> method is a nice utility function from the <code>BoardCell</code> struct to make the code more readable. The code for it is as follows:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#66d9ef>public</span> BoardCell Adjacent(TileOrientation orientation, <span style=color:#66d9ef>int</span> floorOffset = <span style=color:#ae81ff>0</span>) {
+    <span style=color:#66d9ef>int</span> column = Column;
+    <span style=color:#66d9ef>int</span> row = Row;
+    <span style=color:#66d9ef>int</span> floor = Floor + floorOffset;
+
+    <span style=color:#66d9ef>switch</span> (orientation) {
+        <span style=color:#66d9ef>case</span> TileOrientation.North: row -= <span style=color:#ae81ff>1</span>; <span style=color:#66d9ef>break</span>;
+        <span style=color:#66d9ef>case</span> TileOrientation.South: row += <span style=color:#ae81ff>1</span>; <span style=color:#66d9ef>break</span>;
+        <span style=color:#66d9ef>case</span> TileOrientation.West: column -= <span style=color:#ae81ff>1</span>; <span style=color:#66d9ef>break</span>;
+        <span style=color:#66d9ef>case</span> TileOrientation.East: column += <span style=color:#ae81ff>1</span>; <span style=color:#66d9ef>break</span>;
+    }
+
+    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> BoardCell(column, row, floor);
+}
+</code></pre></div><p>With the <code>IsConnected</code> and <code>Neighbors</code> methods in place, we can then make use of them with a graph search algorithm in the <code>Board</code> class. Following any of the algorithms from the mentioned <a href=https://www.redblobgames.com/pathfinding/a-star/introduction.html>article</a> earlier, we get the following:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#66d9ef>public</span> List&lt;TileWalkable&gt; ShortestPath(TileWalkable <span style=color:#66d9ef>from</span>, TileWalkable to) {
+    <span style=color:#75715e>/* ... */</span>
+    <span style=color:#66d9ef>while</span> (frontier.Count &gt; <span style=color:#ae81ff>0</span>) {
+        <span style=color:#66d9ef>var</span> current = frontier.Dequeue();
+        <span style=color:#75715e>/* ... */</span>
+        <span style=color:#66d9ef>foreach</span> (<span style=color:#66d9ef>var</span> neighbor <span style=color:#66d9ef>in</span> current.Neighbors(Tiles)) {
+            <span style=color:#66d9ef>if</span> (!neighbor.IsConnected(current, board.Tiles)) <span style=color:#66d9ef>continue</span>;
+            <span style=color:#75715e>/* ... */</span>
+        }
+    }
+
+    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> List&lt;TileWalkable&gt;();
+}
+</code></pre></div><p>This will return a list of <code>TileWalkable</code> tiles which represents the shortest path from one tile to another. To finally make a player move, one only needs to construct a list of <code>Vector3</code> positions from the tiles and make the player follow that path.</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://animalsociety.github.io/blog/tags/godot>godot</a></li></ul></footer></article></main><footer class=footer><span>&copy; 2020 <a href=https://animalsociety.github.io/blog>Animal Society</a></span>
+<span>&#183;</span>
+<span>Powered by <a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo️️</a>️</span>
+<span>&#183;</span>
+<span>Theme️ <a href=https://git.io/hugopapermod rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top"><button class=top-link id=top-link type=button><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6"><path d="M12 6H0l6-6z"/></svg></button></a>
+<script src=https://animalsociety.github.io/blog/assets/js/highlight.min.e7afc2928c0925d65c4732dfebe147014d91299a98e819e4b42f25c4fa68e91c.js integrity="sha256-56/CkowJJdZcRzLf6+FHAU2RKZqY6BnktC8lxPpo6Rw="></script><script>hljs.initHighlightingOnLoad();</script><script>window.onload=function(){if(localStorage.getItem("menu-scroll-position")){document.getElementById('menu').scrollLeft=localStorage.getItem("menu-scroll-position");}}
+document.querySelectorAll('a[href^="#"]').forEach(anchor=>{anchor.addEventListener("click",function(e){e.preventDefault();document.querySelector(this.getAttribute("href")).scrollIntoView({behavior:"smooth"});});});var mybutton=document.getElementById("top-link");window.onscroll=function(){if(document.body.scrollTop>800||document.documentElement.scrollTop>800){mybutton.style.visibility="visible";mybutton.style.opacity="1";}else{mybutton.style.visibility="hidden";mybutton.style.opacity="0";}};function menu_on_scroll(){localStorage.setItem("menu-scroll-position",document.getElementById('menu').scrollLeft);}</script><script>localStorage.removeItem("pref-theme");</script></body></html>
