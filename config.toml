@@ -1,4 +1,4 @@
-baseURL = "https://animalsociety.github.io/blog"
+baseURL = "https://animalsociety.github.io/blog/"
 languageCode = "en-us"
 title = "Animal Society"
 theme = "hugo-PaperMod"

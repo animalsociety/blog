@@ -5,7 +5,7 @@ draft: false
 description: "Simple 3D tile system in Godot"
 tags: ["godot"]
 cover:
-    image: 3d-tile-system-in-godot/cover.gif
+    image: /blog/3d-tile-system-in-godot/cover.gif
 ShowToc: false
 TocOpen: false
 ---
@@ -64,7 +64,7 @@ First we define how big the map is by the entries at the top. From there, we sim
 
 The `JSON` file produces the following tiny map:
 
-![](/3d-tile-system-in-godot/tiny-map.png)
+![](/blog/3d-tile-system-in-godot/tiny-map.png)
 
 
 ## The Board Class
