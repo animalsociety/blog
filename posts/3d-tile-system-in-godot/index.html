@@ -3,7 +3,7 @@
 </span></code></pre></div><p>The abstract <code>Tile</code> class defines the common data and behaviour that all tiles in the game should have. Arguably the most important piece of data that each tile has is its position in the 3D array, and its <code>Load</code> method which simply loads a 3D model into the game based on its cell position.</p><p>The tiles are constructed from a <code>JSON</code> file that defines the map. At runtime, this file is read and parsed into various tiles that inherits from the abstract <code>Tile</code> class and loaded into the game. That&rsquo;s basically it for the 3D tile system.</p><p>To demonstrate a small example, take this simple <code>JSON</code> file that defines two tiles in the game:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json>{
     <span style=color:#f92672>&#34;columns&#34;</span>: <span style=color:#e6db74>&#34;2&#34;</span>,
     <span style=color:#f92672>&#34;rows&#34;</span>: <span style=color:#e6db74>&#34;1&#34;</span>,
-    <span style=color:#f92672>&#34;floors&#34;</span>: <span style=color:#e6db74>&#34;1&#34;</span>,
+    <span style=color:#f92672>&#34;floors&#34;</span>: <span style=color:#e6db74>&#34;2&#34;</span>,
     <span style=color:#f92672>&#34;tiles&#34;</span>: [
         {
             <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;floor&#34;</span>,
