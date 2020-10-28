@@ -5,7 +5,7 @@ draft: false
 description: "Simple 3D tile system in Godot"
 tags: ["godot"]
 cover:
-    image: /blog/3d-tile-system-in-godot/cover.gif
+    image: /blog/3d-tile-system-in-godot/cover.jpg
 ShowToc: false
 TocOpen: false
 ---
@@ -15,6 +15,11 @@ This is a short article to bring some insight into how we implemented a simple 3
 Enjoy!
 
 ## Overview
+
+{{< video
+    width="100%"
+    src="/blog/3d-tile-system-in-godot/video.mp4"
+    type="video/mp4" >}}
 
 In essence, the entire map is just a 3D array where each cell maps to an abstract `Tile` class:
 
