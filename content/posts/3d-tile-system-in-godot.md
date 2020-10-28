@@ -37,7 +37,7 @@ To demonstrate a small example, take this simple `JSON` file that defines two ti
 {
     "columns": "2",
     "rows": "1",
-    "floors": "1",
+    "floors": "2",
     "tiles": [
         {
             "type": "floor",
